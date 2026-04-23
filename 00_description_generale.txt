@@ -1,0 +1,13 @@
+CONCEPT GÉNÉRAL - ÉCOTECH 3D MUSEUM
+
+Vision : Rendre la culture et l’éducation accessibles à tous, même à distance (personnes qui ne peuvent pas se déplacer).
+Approche : Proposer une alternative innovante aux musées classiques grâce à une visite virtuelle interactive en 3D (WebGL).
+
+Description : 
+ÉcoTech 3D est une galerie intelligente et immersive conçue pour briser les barrières physiques de l'éducation. C'est une plateforme éducative de haut standing utilisant la technologie temps réel pour offrir une expérience premium, accessible depuis n'importe quel point du globe.
+
+Mission : 
+Démocratiser la culture environnementale et sensibiliser aux enjeux de notre siècle (Objectifs de Développement Durable - ODD) à travers des simulations interactives.
+
+Esthétique : 
+Design "Premium Gallery" — Architecture épurée, éclairage réaliste, et maquettes holographiques interactives.
