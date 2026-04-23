@@ -11,6 +11,7 @@ const EcoApp = {
     clock: null,
     rooms: null,
     currentRoom: 'hall',
+    rgbOrbitLights: [],
 
     init() {
         this.clock = new THREE.Clock();
@@ -58,8 +59,8 @@ const EcoApp = {
     _initThreeJS() {
         // Scene — bright background
         this.scene = new THREE.Scene();
-        this.scene.background = new THREE.Color(0x0a0a0e); // Near black
-        this.scene.fog = new THREE.Fog(0x0a0a0e, 60, 180);
+        this.scene.background = new THREE.Color(0x040611);
+        this.scene.fog = new THREE.Fog(0x040611, 48, 170);
 
         // Camera
         this.camera = new THREE.PerspectiveCamera(65, window.innerWidth / window.innerHeight, 0.1, 300);
@@ -75,7 +76,7 @@ const EcoApp = {
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        this.renderer.toneMappingExposure = 1.1; // Reduced from 1.5 for realism
+        this.renderer.toneMappingExposure = 1.0;
         this.renderer.outputEncoding = THREE.sRGBEncoding || 3001; // r128 compatibility
         document.body.appendChild(this.renderer.domElement);
         console.log('Renderer added to DOM');
@@ -111,16 +112,50 @@ const EcoApp = {
      * Premium gallery lighting — warm, dramatic, realistic
      */
     _setupLighting() {
-        // Warm ambient (low for drama)
-        const ambient = new THREE.AmbientLight(0xffeedd, 0.3);
+        const ambient = new THREE.AmbientLight(0x1a2348, 0.22);
         this.scene.add(ambient);
 
-        // Hemisphere: warm ceiling glow / dark floor
-        const hemi = new THREE.HemisphereLight(0xfff0d0, 0x222222, 0.4);
+        const hemi = new THREE.HemisphereLight(0x2f5cff, 0x05060d, 0.42);
         this.scene.add(hemi);
 
-        // Primary warm directional (strong)
-        const sunLight = new THREE.DirectionalLight(0xfff0cc, 0.9);
+        const keyLight = new THREE.DirectionalLight(0x7ab3ff, 0.42);
+        keyLight.position.set(18, 30, 14);
+        keyLight.castShadow = true;
+        keyLight.shadow.mapSize.width = 2048;
+        keyLight.shadow.mapSize.height = 2048;
+        keyLight.shadow.camera.left = -60;
+        keyLight.shadow.camera.right = 60;
+        keyLight.shadow.camera.top = 60;
+        keyLight.shadow.camera.bottom = -60;
+        this.scene.add(keyLight);
+
+        const fillLight = new THREE.DirectionalLight(0xff46d8, 0.28);
+        fillLight.position.set(-24, 20, -16);
+        this.scene.add(fillLight);
+
+        const rimLight = new THREE.DirectionalLight(0x32d9ff, 0.22);
+        rimLight.position.set(0, 22, -30);
+        this.scene.add(rimLight);
+
+        const cyanOrbit = new THREE.PointLight(0x2dfdff, 0.85, 95, 1.9);
+        const magentaOrbit = new THREE.PointLight(0xff2bd6, 0.85, 95, 1.9);
+        const blueOrbit = new THREE.PointLight(0x2b6bff, 0.75, 90, 1.9);
+        this.scene.add(cyanOrbit);
+        this.scene.add(magentaOrbit);
+        this.scene.add(blueOrbit);
+
+        this.rgbOrbitLights = [
+            { light: cyanOrbit, radius: 26, speed: 0.23, phase: 0.0, y: 7.8 },
+            { light: magentaOrbit, radius: 22, speed: 0.27, phase: 2.2, y: 8.6 },
+            { light: blueOrbit, radius: 28, speed: 0.19, phase: 4.1, y: 7.2 },
+        ];
+
+        const hallPulse = new THREE.PointLight(0x6f8fff, 0.75, 65, 2.0);
+        hallPulse.position.set(0, 4.5, 0);
+        this.scene.add(hallPulse);
+        this.rgbOrbitLights.push({ light: hallPulse, radius: 0, speed: 0.85, phase: 1.4, y: 4.5, pulseOnly: true });
+
+        const sunLight = new THREE.DirectionalLight(0x8fb6ff, 0.35);
         sunLight.position.set(20, 50, 10);
         sunLight.castShadow = true;
         sunLight.shadow.mapSize.width = 2048;
@@ -131,17 +166,7 @@ const EcoApp = {
         sunLight.shadow.camera.bottom = -60;
         this.scene.add(sunLight);
 
-        // Warm fill from opposite side
-        const fillLight = new THREE.DirectionalLight(0xffddaa, 0.35);
-        fillLight.position.set(-30, 25, -25);
-        this.scene.add(fillLight);
-
-        // Cool accent for depth
-        const accentLight = new THREE.DirectionalLight(0x8899bb, 0.2);
-        accentLight.position.set(0, 30, -40);
-        this.scene.add(accentLight);
-
-        console.log('Dark luxury gallery lighting active');
+        console.log('Neo gaming RGB lighting active');
     },
 
     _showWelcome() {
@@ -221,6 +246,21 @@ const EcoApp = {
             this.rooms.forEach(room => {
                 if (room.update) room.update(elapsed, delta);
             });
+            if (Museum.update) Museum.update(elapsed, delta);
+
+            if (this.rgbOrbitLights && this.rgbOrbitLights.length) {
+                this.rgbOrbitLights.forEach(item => {
+                    if (item.pulseOnly) {
+                        item.light.intensity = 0.55 + 0.45 * (0.5 + 0.5 * Math.sin(elapsed * item.speed + item.phase));
+                        return;
+                    }
+                    item.light.position.set(
+                        Math.cos(elapsed * item.speed + item.phase) * item.radius,
+                        item.y + Math.sin(elapsed * item.speed * 1.8 + item.phase) * 0.8,
+                        Math.sin(elapsed * item.speed + item.phase) * item.radius
+                    );
+                });
+            }
 
             const newRoom = Museum.getPlayerRoom(this.camera.position.x, this.camera.position.z);
             if (newRoom !== this.currentRoom) {

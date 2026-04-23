@@ -49,10 +49,10 @@ const HallRoom = {
         this._globe = globe;
 
         // Rings
-        const ring1 = EcoUtils.createGlowRing(1.8, 0x00d4aa, 0.02);
+        const ring1 = EcoUtils.createGlowRing(1.8, 0x2dfdff, 0.02);
         ring1.rotation.x = Math.PI / 2; ring1.position.y = 2.8;
         globeGroup.add(ring1);
-        const ring2 = EcoUtils.createGlowRing(2.1, 0x4da6ff, 0.015);
+        const ring2 = EcoUtils.createGlowRing(2.1, 0xff2bd6, 0.015);
         ring2.rotation.x = Math.PI / 3; ring2.rotation.z = Math.PI / 4; ring2.position.y = 2.8;
         globeGroup.add(ring2);
         this._rings = [ring1, ring2];
@@ -127,7 +127,18 @@ const HallRoom = {
         const gap = 0.05;
 
         const doorMat = new THREE.MeshStandardMaterial({
-            color: 0x1a1410, roughness: 0.25, metalness: 0.3,
+            color: 0x0f1630,
+            emissive: 0x2b6bff,
+            emissiveIntensity: 0.1,
+            roughness: 0.28,
+            metalness: 0.55,
+        });
+        const edgeMat = new THREE.MeshStandardMaterial({
+            color: 0x2dfdff,
+            emissive: 0x2dfdff,
+            emissiveIntensity: 0.9,
+            roughness: 0.15,
+            metalness: 0.85,
         });
 
         // Left Hinge and Door
@@ -144,15 +155,27 @@ const HallRoom = {
         rightDoor.position.set(-doorW/2, doorH/2, 0); // Offset geometry
         rightHinge.add(rightDoor);
 
-        // Gold handle bars
-        const handleMat = new THREE.MeshStandardMaterial({ color: 0xd4a84b, roughness: 0.15, metalness: 0.9 });
+        // Neon handle bars
+        const handleMat = new THREE.MeshStandardMaterial({
+            color: 0x2dfdff,
+            emissive: 0x2dfdff,
+            emissiveIntensity: 0.85,
+            roughness: 0.15,
+            metalness: 0.9,
+        });
         const lHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8), handleMat);
         lHandle.position.set(doorW - 0.3, doorH/2, 0.08); leftDoor.add(lHandle);
         const rHandle = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.0, 8), handleMat);
         rHandle.position.set(-doorW + 0.3, doorH/2, 0.08); rightDoor.add(rHandle);
 
-        // Gold decorative panels on each door
-        const panelMat = new THREE.MeshStandardMaterial({ color: 0xaa8030, roughness: 0.2, metalness: 0.7 });
+        // Neon decorative panels on each door
+        const panelMat = new THREE.MeshStandardMaterial({
+            color: 0xff2bd6,
+            emissive: 0xff2bd6,
+            emissiveIntensity: 0.6,
+            roughness: 0.22,
+            metalness: 0.72,
+        });
         [-1, 1].forEach(side => {
             const door = side === -1 ? leftDoor : rightDoor;
             const sign = side === -1 ? 1 : -1;
@@ -167,6 +190,13 @@ const HallRoom = {
             }
         });
 
+        const leftEdgeStrip = new THREE.Mesh(new THREE.BoxGeometry(doorW, 0.03, 0.03), edgeMat);
+        leftEdgeStrip.position.set(doorW / 2, doorH - 0.12, 0.08);
+        leftDoor.add(leftEdgeStrip);
+        const rightEdgeStrip = new THREE.Mesh(new THREE.BoxGeometry(doorW, 0.03, 0.03), edgeMat);
+        rightEdgeStrip.position.set(-doorW / 2, doorH - 0.12, 0.08);
+        rightDoor.add(rightEdgeStrip);
+
         // Rotate for axis
         if (axis === 'x') {
             doorGroup.rotation.y = Math.PI / 2;
@@ -177,8 +207,8 @@ const HallRoom = {
 
         // Door label above
         const labelSprite = EcoUtils.createTextSprite(label, {
-            fontSize: 32, fontWeight: 'bold', color: '#d4a84b',
-            bgColor: 'rgba(20,16,12,0.85)', padding: 12, scale: 0.008,
+            fontSize: 32, fontWeight: 'bold', color: '#8fdfff',
+            bgColor: 'rgba(8,14,34,0.88)', padding: 12, scale: 0.008,
         });
         labelSprite.position.set(0, doorH + 0.5, 0);
         doorGroup.add(labelSprite);
@@ -188,7 +218,14 @@ const HallRoom = {
         hitbox.position.y = doorH/2;
         
         // Store door refs for animation
-        const doorRef = { left: leftHinge, right: rightHinge, open: false, angle: 0, targetAngle: 0 };
+        const doorRef = {
+            left: leftHinge,
+            right: rightHinge,
+            open: false,
+            angle: 0,
+            targetAngle: 0,
+            glowMats: [doorMat, edgeMat, handleMat, panelMat],
+        };
         this._doors.push(doorRef);
 
         hitbox.userData = {
@@ -258,6 +295,16 @@ const HallRoom = {
                 door.angle += (door.targetAngle - door.angle) * 5 * delta;
                 door.left.rotation.y = -door.angle; // Left door opens outwards
                 door.right.rotation.y = door.angle; // Right door opens outwards
+
+                if (door.glowMats) {
+                    const pulse = 0.5 + 0.5 * Math.sin(time * 2.1 + door.angle * 3);
+                    door.glowMats.forEach((mat, index) => {
+                        if (!mat.emissive) return;
+                        const base = index === 0 ? 0.1 : 0.55;
+                        const amp = index === 0 ? 0.12 : 0.55;
+                        mat.emissiveIntensity = base + amp * pulse;
+                    });
+                }
             });
         }
     },
