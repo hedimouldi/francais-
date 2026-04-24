@@ -1,0 +1,11 @@
+SALLE 1 : CLIMAT & RÉCHAUFFEMENT
+
+ODD Lié : ODD 13 (Lutte contre les changements climatiques).
+
+Éléments éducatifs de la salle :
+1. Le Thermomètre Géant : Visualisation de l'augmentation globale de +1.5°C à +4°C et ses conséquences.
+2. Ma Ville en 2100 : Simulation immersive de la montée des eaux sur une métropole côtière (New York/Shanghai).
+3. Nuage de CO2 : Représentation volumétrique de la masse de gaz à effet de serre émise annuellement.
+
+Prompt pour l'IA (Vidéo 1 min) :
+"Génère un script vidéo dynamique d'une minute pour la Salle Climat. Le script doit être narré par une voix off calme et inspirante. Il doit expliquer comment les éléments 3D de la salle illustrent l'ODD 13. L'accent doit être mis sur l'accessibilité universelle : 'Grâce à ce musée virtuel, la science n'est plus enfermée dans des murs, elle voyage jusqu'à vous pour transformer votre regard sur le monde.' Le ton doit être éducatif, technologique et plein d'espoir."

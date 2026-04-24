@@ -1,0 +1,11 @@
+SALLE 5 : RECYCLAGE & ÉCONOMIE CIRCULAIRE
+
+ODD Lié : ODD 12 (Consommation et production responsables).
+
+Éléments éducatifs de la salle :
+1. Cycle de l'Aluminium : Maquette 3D montrant comment une canette recyclée redevient une ressource indéfiniment.
+2. La Montagne de Déchets : Simulation du volume de déchets plastiques générés chaque minute mondialement.
+3. Le Tri Intelligent : Jeu interactif pour apprendre à séparer les matériaux et maximiser la valorisation.
+
+Prompt pour l'IA (Vidéo 1 min) :
+"Génère un script vidéo d'une minute sur le passage du déchet à la ressource (ODD 12). Le script doit mettre en avant le côté ludique et innovant du musée virtuel ÉcoTech 3D. 'Éduquer par l'action virtuelle pour transformer nos habitudes réelles. Un musée sans murs, pour un monde sans déchets.'"

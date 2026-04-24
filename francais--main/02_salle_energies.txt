@@ -1,0 +1,11 @@
+SALLE 2 : ÉNERGIES RENOUVELABLES
+
+ODD Lié : ODD 7 (Énergie propre et d'un coût abordable).
+
+Éléments éducatifs de la salle :
+1. Le Mix Énergétique : Maquette dynamique montrant la transition du charbon vers le solaire, l'éolien et l'hydroélectricité.
+2. Cœur de Solaire : Zoom sur une cellule photovoltaïque captant les photons pour créer un flux électrique.
+3. Grid Intelligent : Réseau électrique futuriste montrant la distribution optimisée de l'énergie verte.
+
+Prompt pour l'IA (Vidéo 1 min) :
+"Génère un script vidéo dynamique d'une minute pour la Salle Énergies. Le script doit montrer comment la technologie virtuelle permet de visualiser l'invisible (le courant électrique, les photons). La narration doit expliquer l'ODD 7 et comment le musée ÉcoTech 3D rend ces concepts complexes compréhensibles par tous, partout dans le monde, sans besoin de se déplacer."

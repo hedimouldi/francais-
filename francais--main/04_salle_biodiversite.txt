@@ -1,0 +1,11 @@
+SALLE 4 : BIODIVERSITÉ (TERRE & MER)
+
+ODD Liés : ODD 14 (Vie aquatique) et ODD 15 (Vie terrestre).
+
+Éléments éducatifs de la salle :
+1. L'Aquarium Vivant vs Mort : Comparaison directe entre un récif corallien sain et un récif blanchi par le réchauffement.
+2. Le Silence des Forêts : Simulation interactive de la déforestation sonore montrant la perte d'habitats.
+3. Le Compte à Rebours des Espèces : Compteur en temps réel des espèces menacées et disparues.
+
+Prompt pour l'IA (Vidéo 1 min) :
+"Génère un script vidéo d'une minute sur l'importance de préserver le vivant (ODD 14 et 15). La narration doit être poignante et souligner que la technologie virtuelle du musée ÉcoTech 3D sert ici à reconnecter les humains à la nature sauvage, même à travers un écran, pour sensibiliser ceux qui ne peuvent pas voyager jusqu'aux barrières de corail ou aux forêts tropicales."

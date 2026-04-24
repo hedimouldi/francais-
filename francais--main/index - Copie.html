@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoSphère — Le Musée Vivant du Développement Durable</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;600;700&display=swap');
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{overflow:hidden;background:#0a0a0a;font-family:'Inter',sans-serif}
+        canvas{display:block}
+
+        /* WELCOME */
+        #welcome{position:fixed;inset:0;z-index:1000;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#0d1b0e,#1a3a1c 40%,#0a1f12)}
+        #welcome::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%,rgba(34,197,94,.1),transparent 60%),radial-gradient(ellipse at 70% 70%,rgba(16,185,129,.08),transparent 50%)}
+        .wc{text-align:center;position:relative;z-index:1;max-width:680px;padding:40px}
+        .wc-icon{width:110px;height:110px;margin:0 auto 28px;background:linear-gradient(135deg,rgba(34,197,94,.18),rgba(16,185,129,.08));border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid rgba(34,197,94,.25);animation:glow 3s ease-in-out infinite}
+        @keyframes glow{0%,100%{box-shadow:0 0 30px rgba(34,197,94,.1)}50%{box-shadow:0 0 60px rgba(34,197,94,.25)}}
+        .wc-icon svg{width:55px;height:55px;fill:#22c55e}
+        .wc h1{font-family:'Playfair Display',serif;font-size:3.2rem;color:#e8f5e9;margin-bottom:6px;letter-spacing:-1px}
+        .wc .sub{font-size:1rem;color:rgba(167,210,172,.75);margin-bottom:35px;letter-spacing:3px;text-transform:uppercase;font-weight:300}
+        .wc .tag{font-size:.95rem;color:rgba(167,210,172,.55);margin-bottom:45px;font-style:italic;font-family:'Playfair Display',serif}
+        .wc button{padding:16px 48px;font-size:1.05rem;font-weight:600;color:#fff;background:linear-gradient(135deg,#166534,#15803d);border:1px solid rgba(34,197,94,.35);border-radius:60px;cursor:pointer;transition:all .35s;font-family:'Inter',sans-serif;letter-spacing:1px;text-transform:uppercase}
+        .wc button:hover{transform:translateY(-3px);box-shadow:0 14px 40px rgba(34,197,94,.3);border-color:rgba(34,197,94,.6)}
+        .badges{display:flex;gap:8px;justify-content:center;margin-top:36px;flex-wrap:wrap}
+        .badges span{padding:5px 13px;background:rgba(34,197,94,.08);border:1px solid rgba(34,197,94,.15);border-radius:18px;font-size:.72rem;color:rgba(167,210,172,.65);font-weight:500}
+
+        /* HUD */
+        #crosshair{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:24px;height:24px;z-index:100;pointer-events:none;display:none}
+        #crosshair::before,#crosshair::after{content:'';position:absolute;background:rgba(255,255,255,.55);border-radius:1px}
+        #crosshair::before{width:2px;height:24px;left:11px;top:0}
+        #crosshair::after{width:24px;height:2px;top:11px;left:0}
+        .hud{position:fixed;z-index:50;display:none}
+        #hud-top{top:16px;left:16px;background:linear-gradient(135deg,rgba(10,30,15,.8),rgba(15,40,20,.7));backdrop-filter:blur(18px);padding:14px 22px;border-radius:14px;border:1px solid rgba(34,197,94,.2)}
+        #hud-top .rn{font-family:'Playfair Display',serif;font-size:1.15rem;color:#a7f3d0}
+        #hud-top .ro{font-size:.7rem;color:rgba(167,210,172,.5);margin-top:3px;display:block}
+        #hud-info{top:16px;right:16px;width:250px;background:linear-gradient(135deg,rgba(10,30,15,.75),rgba(15,40,20,.65));backdrop-filter:blur(18px);padding:16px;border-radius:14px;border:1px solid rgba(34,197,94,.15);color:#d1fae5}
+        #hud-info .t{font-family:'Playfair Display',serif;font-size:.95rem;color:#86efac;margin-bottom:5px}
+        #hud-info .d{font-size:.78rem;color:rgba(209,250,229,.6);line-height:1.45}
+        #hud-ctrl{bottom:16px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,rgba(10,30,15,.7),rgba(15,40,20,.6));backdrop-filter:blur(18px);padding:10px 24px;border-radius:12px;border:1px solid rgba(34,197,94,.12);color:rgba(209,250,229,.55);font-size:.76rem;display:none;gap:14px}
+        .ck{display:inline-flex;align-items:center;gap:4px}
+        .ck .k{background:rgba(34,197,94,.15);padding:2px 7px;border-radius:4px;font-family:monospace;font-size:.72rem;border:1px solid rgba(34,197,94,.2);color:#86efac}
+        #minimap{bottom:16px;right:16px;width:190px;height:165px;background:linear-gradient(135deg,rgba(10,30,15,.8),rgba(15,40,20,.7));backdrop-filter:blur(18px);border-radius:14px;border:1px solid rgba(34,197,94,.15);padding:8px}
+        #minimap canvas{width:100%;height:100%;border-radius:10px}
+        #prog{bottom:52px;left:50%;transform:translateX(-50%);width:280px}
+        #prog .lb{font-size:.68rem;color:rgba(209,250,229,.35);text-align:center;margin-bottom:3px}
+        #prog .br{height:3px;background:rgba(34,197,94,.1);border-radius:3px;overflow:hidden}
+        #prog .fl{height:100%;background:linear-gradient(90deg,#22c55e,#10b981);border-radius:3px;transition:width .3s;width:0%}
+
+        /* PAUSE & START OVERLAY */
+        #pause,#start-overlay{position:fixed;inset:0;z-index:500;background:rgba(5,20,10,.8);backdrop-filter:blur(12px);display:none;align-items:center;justify-content:center;cursor:pointer}
+        #pause h2,#start-overlay h2{font-family:'Playfair Display',serif;font-size:2rem;color:#86efac;margin-bottom:12px}
+        #pause p,#start-overlay p{color:rgba(209,250,229,.5);font-size:.95rem}
+        #start-overlay .pulse{animation:startpulse 2s ease-in-out infinite}
+        @keyframes startpulse{0%,100%{opacity:.7}50%{opacity:1}}
+    </style>
+</head>
+<body>
+
+<div id="welcome"><div class="wc">
+    <div class="wc-icon"><svg viewBox="0 0 24 24"><path d="M12 2L1 9l2 0 0 13 18 0 0-13 2 0L12 2zM7 20v-7h4v7H7zm6 0v-7h4v7h-4zm5-9H6V9.5L12 5l6 4.5V11z"/></svg></div>
+    <h1>EcoSphère</h1>
+    <p class="sub">Le Musée Vivant du Développement Durable</p>
+    <p class="tag">« Explorer le présent, imaginer le futur, agir pour la planète »</p>
+    <button onclick="startMuseum()">🌿 Entrer dans le Musée</button>
+    <div class="badges"><span>ODD 4</span><span>ODD 7</span><span>ODD 11</span><span>ODD 12</span><span>ODD 13</span><span>ODD 15</span></div>
+</div></div>
+
+<div id="pause"><div style="text-align:center"><h2>⏸ Visite en pause</h2><p>Cliquez pour reprendre</p></div></div>
+<div id="start-overlay"><div style="text-align:center"><h2>🌿 Bienvenue dans EcoSphère</h2><p class="pulse">Cliquez n'importe où pour commencer la visite</p></div></div>
+<div id="crosshair"></div>
+<div id="hud-top" class="hud"><span class="rn" id="h-name">Hall d'Accueil</span><span class="ro" id="h-odd"></span></div>
+<div id="hud-info" class="hud"><div class="t" id="hi-t">Bienvenue</div><div class="d" id="hi-d">Explorez les 5 salles.</div></div>
+<div id="hud-ctrl" class="hud"><span class="ck"><span class="k">Z</span>Avancer</span><span class="ck"><span class="k">S</span>Reculer</span><span class="ck"><span class="k">Q</span>Gauche</span><span class="ck"><span class="k">D</span>Droite</span><span class="ck"><span class="k">ESC</span>Pause</span></div>
+<div id="minimap" class="hud"><canvas id="mmc" width="174" height="149"></canvas></div>
+<div id="prog" class="hud"><div class="lb">Progression</div><div class="br"><div class="fl" id="pf"></div></div></div>
+
+<div id="cc"></div>
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.163.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.163.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { PointerLockControls } from 'three/addons/controls/PointerLockControls.js';
+
+// ============ SCENE ============
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x87CEEB);
+
+const camera = new THREE.PerspectiveCamera(65, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 1.7, 0);
+
+const renderer = new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance'});
+renderer.setSize(innerWidth,innerHeight);
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;
+renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.toneMapping=THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure=1.4;
+renderer.outputColorSpace=THREE.SRGBColorSpace;
+document.getElementById('cc').appendChild(renderer.domElement);
+
+// ============ CONTROLS ============
+const controls = new PointerLockControls(camera, renderer.domElement);
+const vel = new THREE.Vector3();
+const mv = {f:false,b:false,l:false,r:false};
+let locked = false;
+let museumStarted = false;
+
+const showHUD = v => {
+    document.getElementById('crosshair').style.display = v?'block':'none';
+    ['hud-top','hud-info','hud-ctrl','minimap','prog'].forEach(id => {
+        document.getElementById(id).style.display = v?(id==='hud-ctrl'?'flex':'block'):'none';
+    });
+};
+
+controls.addEventListener('lock', ()=>{
+    locked=true; showHUD(true);
+    document.getElementById('pause').style.display='none';
+    document.getElementById('start-overlay').style.display='none';
+});
+controls.addEventListener('unlock', ()=>{
+    locked=false; showHUD(false);
+    if(museumStarted) document.getElementById('pause').style.display='flex';
+});
+
+// Click handlers for pause and start overlays
+document.getElementById('pause').addEventListener('click',()=>controls.lock());
+document.getElementById('start-overlay').addEventListener('click',()=>controls.lock());
+
+// Welcome button: hides welcome, shows start-overlay (which triggers pointer lock on click)
+window.startMuseum = function() {
+    document.getElementById('welcome').style.display='none';
+    museumStarted = true;
+    document.getElementById('start-overlay').style.display='flex';
+};
+
+// ============ TEXTURES ============
+const TL = new THREE.TextureLoader();
+
+function mkTex(w,h,fn){
+    const c=document.createElement('canvas');c.width=w;c.height=h;
+    fn(c.getContext('2d'),w,h);
+    const t=new THREE.CanvasTexture(c);
+    t.wrapS=t.wrapT=THREE.RepeatWrapping;
+    t.colorSpace=THREE.SRGBColorSpace;
+    return t;
+}
+
+const parquetTex = mkTex(512,512,(ctx,w,h)=>{
+    ctx.fillStyle='#c49a6c';ctx.fillRect(0,0,w,h);
+    const cols=['#b8895e','#c49a6c','#d4a574','#be916a','#c8a070','#b08558'];
+    for(let r=0;r<8;r++)for(let c=0;c<8;c++){
+        const pw=64,ph=64,ox=(r%2)*(pw/2);
+        ctx.fillStyle=cols[(r*8+c)%cols.length];
+        ctx.fillRect(c*pw+ox,r*ph,pw-1,ph-1);
+        ctx.strokeStyle='rgba(80,50,20,.06)';ctx.lineWidth=.5;
+        for(let g=0;g<3;g++){const gy=r*ph+Math.random()*ph;ctx.beginPath();ctx.moveTo(c*pw+ox,gy);ctx.lineTo(c*pw+ox+pw,gy+(Math.random()-.5)*2);ctx.stroke()}
+    }
+});
+parquetTex.repeat.set(3,3);
+
+const carpetTex = mkTex(256,256,(ctx,w,h)=>{
+    ctx.fillStyle='#3d7050';ctx.fillRect(0,0,w,h);
+    for(let i=0;i<4000;i++){ctx.fillStyle=`rgba(${45+Math.random()*25},${85+Math.random()*35},${55+Math.random()*25},.25)`;ctx.fillRect(Math.random()*w,Math.random()*h,1.5,2.5)}
+});
+carpetTex.repeat.set(6,6);
+
+const wallTex=mkTex(64,64,(c,w,h)=>{c.fillStyle='#f2ede5';c.fillRect(0,0,w,h)});
+const wallTexG=mkTex(64,64,(c,w,h)=>{c.fillStyle='#e5efe8';c.fillRect(0,0,w,h)});
+const ceilTex=mkTex(64,64,(c,w,h)=>{c.fillStyle='#fafafa';c.fillRect(0,0,w,h)});
+
+const M={
+    floor:new THREE.MeshStandardMaterial({map:parquetTex,roughness:.55}),
+    carpet:new THREE.MeshStandardMaterial({map:carpetTex,roughness:.85}),
+    wall:new THREE.MeshStandardMaterial({map:wallTex,roughness:.75,side:THREE.DoubleSide}),
+    wallG:new THREE.MeshStandardMaterial({map:wallTexG,roughness:.75,side:THREE.DoubleSide}),
+    ceil:new THREE.MeshStandardMaterial({map:ceilTex,roughness:.9,side:THREE.DoubleSide}),
+    frame:new THREE.MeshStandardMaterial({color:0x8B6914,roughness:.35,metalness:.1}),
+    glass:new THREE.MeshStandardMaterial({color:0xaaddff,transparent:true,opacity:.25,roughness:.05,side:THREE.DoubleSide}),
+    base:new THREE.MeshStandardMaterial({color:0x6b5a3e,roughness:.5}),
+};
+
+// ============ COLLISION ============
+const colls = [];
+function addCol(x,z,w,d){colls.push({x1:x-w/2,z1:z-d/2,x2:x+w/2,z2:z+d/2})}
+const PR=0.35;
+
+function hit(px,pz){
+    for(const c of colls){
+        const cx=Math.max(c.x1,Math.min(px,c.x2));
+        const cz=Math.max(c.z1,Math.min(pz,c.z2));
+        if((px-cx)**2+(pz-cz)**2<PR*PR)return true;
+    }
+    return false;
+}
+
+// ============ BUILDERS ============
+const WT=0.2, DW=2.4, DH=2.9;
+
+function mkFloor(x,z,w,d,mat){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),mat);m.rotation.x=-Math.PI/2;m.position.set(x,.005,z);m.receiveShadow=true;scene.add(m)}
+function mkCeil(x,z,w,d,h){const m=new THREE.Mesh(new THREE.PlaneGeometry(w,d),M.ceil);m.rotation.x=Math.PI/2;m.position.set(x,h,z);scene.add(m)}
+
+function mkWall(x,z,w,h,ry,mat){
+    const m=new THREE.Mesh(new THREE.BoxGeometry(w,h,WT),mat||M.wall);
+    m.position.set(0,h/2,0);
+    const g=new THREE.Group();g.add(m);g.position.set(x,0,z);g.rotation.y=ry;
+    scene.add(g);
+    // collision
+    if(Math.abs(Math.sin(ry))>0.5) addCol(x,z,WT+.15,w+.15);
+    else addCol(x,z,w+.15,WT+.15);
+}
+
+function mkDoorWall(x,z,totalW,h,ry,doorPos,mat){
+    const lW=doorPos-DW/2, rW=totalW-doorPos-DW/2;
+    const g=new THREE.Group();
+    if(lW>.05){const m=new THREE.Mesh(new THREE.BoxGeometry(lW,h,WT),mat||M.wall);m.position.set(-totalW/2+lW/2,h/2,0);g.add(m)}
+    if(rW>.05){const m=new THREE.Mesh(new THREE.BoxGeometry(rW,h,WT),mat||M.wall);m.position.set(totalW/2-rW/2,h/2,0);g.add(m)}
+    const topH=h-DH;
+    if(topH>.05){const m=new THREE.Mesh(new THREE.BoxGeometry(DW,topH,WT),mat||M.wall);m.position.set(-totalW/2+doorPos,DH+topH/2,0);g.add(m)}
+    const ft=.1,fd=WT+.12;
+    const lf=new THREE.Mesh(new THREE.BoxGeometry(ft,DH,fd),M.frame);lf.position.set(-totalW/2+doorPos-DW/2-ft/2,DH/2,0);g.add(lf);
+    const rf=new THREE.Mesh(new THREE.BoxGeometry(ft,DH,fd),M.frame);rf.position.set(-totalW/2+doorPos+DW/2+ft/2,DH/2,0);g.add(rf);
+    const tf=new THREE.Mesh(new THREE.BoxGeometry(DW+ft*2,ft,fd),M.frame);tf.position.set(-totalW/2+doorPos,DH+ft/2,0);g.add(tf);
+    g.position.set(x,0,z);g.rotation.y=ry;scene.add(g);
+
+    // collision: two segments with door gap
+    const doorLocalX=-totalW/2+doorPos;
+    if(Math.abs(Math.sin(ry))>0.5){
+        // wall along Z
+        const s=Math.sign(Math.sin(ry))||1;
+        if(lW>.1)addCol(x,z+(-totalW/2+lW/2)*(-s),WT+.15,lW);
+        if(rW>.1)addCol(x,z+(totalW/2-rW/2)*(-s),WT+.15,rW);
+    } else {
+        // wall along X
+        const c=Math.cos(ry)>0?1:-1;
+        if(lW>.1)addCol(x+(-totalW/2+lW/2)*c,z,lW,WT+.15);
+        if(rW>.1)addCol(x+(totalW/2-rW/2)*c,z,rW,WT+.15);
+    }
+}
+
+function addLights(x,z,w,d,h,cols,rows){
+    for(let r=0;r<rows;r++)for(let c=0;c<cols;c++){
+        const lx=x-w/2+(c+1)*w/(cols+1),lz=z-d/2+(r+1)*d/(rows+1);
+        const fix=new THREE.Mesh(new THREE.CylinderGeometry(.13,.18,.04,12),new THREE.MeshStandardMaterial({color:0xfff8e7,emissive:0xffeebb,emissiveIntensity:.6}));
+        fix.position.set(lx,h-.02,lz);scene.add(fix);
+        const pl=new THREE.PointLight(0xfff0d0,.5,10,1.5);pl.position.set(lx,h-.08,lz);scene.add(pl);
+    }
+}
+
+function addWin(x,z,w,h,ry,n){
+    const wH=.7,wY=h-wH/2-.15,sp=w/(n+1);
+    for(let i=0;i<n;i++){
+        const wm=new THREE.Mesh(new THREE.PlaneGeometry(sp*.7,wH),M.glass);
+        const g=new THREE.Group();wm.position.set(-w/2+(i+1)*sp,wY,WT/2+.01);g.add(wm);
+        g.position.set(x,0,z);g.rotation.y=ry;scene.add(g);
+    }
+}
+
+// ============ INFO PANELS ============
+function mkInfo(title,items,colors={}){
+    const{bg='#1a2332',tc='#4ade80',txt='#e2e8f0',ac='#22c55e'}=colors;
+    return mkTex(800,600,(ctx,w,h)=>{
+        const grd=ctx.createLinearGradient(0,0,0,h);grd.addColorStop(0,bg);grd.addColorStop(1,'#0f172a');
+        ctx.fillStyle=grd;ctx.fillRect(0,0,w,h);
+        ctx.strokeStyle=ac;ctx.lineWidth=3;ctx.strokeRect(8,8,w-16,h-16);
+        ctx.fillStyle=tc;ctx.font='bold 32px Inter,Arial,sans-serif';ctx.textAlign='center';ctx.fillText(title,w/2,52);
+        ctx.strokeStyle=ac;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(80,74);ctx.lineTo(w-80,74);ctx.stroke();
+        ctx.textAlign='left';ctx.font='20px Inter,Arial,sans-serif';
+        items.forEach((it,i)=>{const y=112+i*50;ctx.fillStyle=ac;ctx.beginPath();ctx.arc(52,y,5,0,Math.PI*2);ctx.fill();ctx.fillStyle=txt;ctx.fillText(it,68,y+5)});
+    });
+}
+
+function addArt(src,x,y,z,ry,aw=2,ah=1.5){
+    const g=new THREE.Group();
+    g.add(new THREE.Mesh(new THREE.BoxGeometry(aw+.15,ah+.15,.05),M.frame));
+    if(typeof src==='string'){
+        TL.load(src,t=>{t.colorSpace=THREE.SRGBColorSpace;const a=new THREE.Mesh(new THREE.PlaneGeometry(aw,ah),new THREE.MeshStandardMaterial({map:t,roughness:.3}));a.position.z=.03;g.add(a)},undefined,()=>{const a=new THREE.Mesh(new THREE.PlaneGeometry(aw,ah),new THREE.MeshStandardMaterial({color:0xddd}));a.position.z=.03;g.add(a)});
+    } else {
+        const a=new THREE.Mesh(new THREE.PlaneGeometry(aw,ah),new THREE.MeshStandardMaterial({map:src,roughness:.3}));a.position.z=.03;g.add(a);
+    }
+    g.position.set(x,y,z);g.rotation.y=ry;scene.add(g);
+}
+
+function addPanel(tex,x,z,ry=0,pw=3,ph=2){
+    const g=new THREE.Group();
+    const lm=new THREE.MeshStandardMaterial({color:0x8B7355,roughness:.5});
+    [-pw/2,pw/2].forEach(lx=>{const l=new THREE.Mesh(new THREE.BoxGeometry(.05,2.4,.05),lm);l.position.set(lx,1.2,0);g.add(l)});
+    const board=new THREE.Mesh(new THREE.BoxGeometry(pw,ph,.04),new THREE.MeshStandardMaterial({color:0xf5f0e0,roughness:.6}));board.position.set(0,1.5,0);g.add(board);
+    const cm=new THREE.MeshStandardMaterial({map:tex,roughness:.3});
+    const c1=new THREE.Mesh(new THREE.PlaneGeometry(pw-.1,ph-.1),cm);c1.position.set(0,1.5,.025);g.add(c1);
+    const c2=new THREE.Mesh(new THREE.PlaneGeometry(pw-.1,ph-.1),cm);c2.position.set(0,1.5,-.025);c2.rotation.y=Math.PI;g.add(c2);
+    g.position.set(x,0,z);g.rotation.y=ry;scene.add(g);
+}
+
+function addLabel(txt,x,y,z,ry){
+    const t=mkTex(512,96,(ctx,w,h)=>{ctx.clearRect(0,0,w,h);ctx.fillStyle='#4a5568';ctx.font='bold 42px Playfair Display,serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,w/2,h/2)});
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.48),new THREE.MeshBasicMaterial({map:t,transparent:true,side:THREE.DoubleSide}));
+    m.position.set(x,y,z);m.rotation.y=ry;scene.add(m);
+}
+
+function addArrow(x,y,z,ry,txt='Suite →'){
+    const t=mkTex(512,128,(ctx,w,h)=>{ctx.clearRect(0,0,w,h);ctx.fillStyle='rgba(220,38,38,.85)';ctx.beginPath();ctx.moveTo(15,25);ctx.lineTo(390,25);ctx.lineTo(470,h/2);ctx.lineTo(390,h-25);ctx.lineTo(15,h-25);ctx.closePath();ctx.fill();ctx.fillStyle='#fff';ctx.font='bold 26px Inter,Arial,sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(txt,230,h/2)});
+    // FrontSide only to avoid mirrored text!
+    const m=new THREE.Mesh(new THREE.PlaneGeometry(2.4,.58),new THREE.MeshBasicMaterial({map:t,transparent:true,side:THREE.FrontSide}));
+    m.position.set(x,y,z);m.rotation.y=ry;scene.add(m);
+}
+
+const art3DAnims = [];
+const MR = {
+  climat: {
+    wall: new THREE.MeshStandardMaterial({map: wallTexG, color: 0xe6f3ff, roughness: 0.7}),
+    accent: new THREE.MeshStandardMaterial({map: wallTex, color: 0x4682b4, roughness: 0.6})
+  },
+  energie: {
+    wall: new THREE.MeshStandardMaterial({map: wallTexG, color: 0xfff8e6, roughness: 0.7}),
+    accent: new THREE.MeshStandardMaterial({map: wallTex, color: 0xffd700, roughness: 0.5})
+  },
+  villes: {
+    wall: new THREE.MeshStandardMaterial({map: wallTexG, color: 0xe6ffe6, roughness: 0.7}),
+    accent: new THREE.MeshStandardMaterial({map: wallTex, color: 0x228b22, roughness: 0.6})
+  },
+  biodiversite: {
+    wall: new THREE.MeshStandardMaterial({map: wallTexG, color: 0xe0f7e0, roughness: 0.8}),
+    accent: new THREE.MeshStandardMaterial({map: wallTex, color: 0x32cd32, roughness: 0.65})
+  },
+  recyclage: {
+    wall: new THREE.MeshStandardMaterial({map: wallTexG, color: 0xfff0e0, roughness: 0.7}),
+    accent: new THREE.MeshStandardMaterial({map: wallTex, color: 0xff8c00, roughness: 0.5})
+  }
+};
+
+function createModelV2(type, palette = [], data = {}) {
+  const g = new THREE.Group();
+  const c1 = palette[0] ? new THREE.Color(palette[0]) : new THREE.Color(0x2a8a7a);
+  const c2 = palette[2] ? new THREE.Color(palette[2]) : new THREE.Color(0xb87333);
+  const c3 = palette[3] ? new THREE.Color(palette[3]) : new THREE.Color(0x3aa89a);
+
+  if (type === 'serre') {
+    // Sphère effet de serre
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshStandardMaterial({color: 0x4a90d9, emissive: 0x2244aa, emissiveIntensity: 0.2}));
+    g.add(core);
+    for (let i = 0; i < 3; i++) {
+      const layer = new THREE.Mesh(new THREE.SphereGeometry(0.45 + i * 0.1, 32, 32), new THREE.MeshStandardMaterial({color: 0xffa500, transparent: true, opacity: 0.2 - i * 0.05, side: THREE.BackSide}));
+      g.add(layer);
+      art3DAnims.push({mesh: layer, type: 'pulse', speed: 0.3 + i * 0.2});
+    }
+    art3DAnims.push({mesh: core, type: 'rotateY', speed: 0.01});
+  } else if (type === 'ocean') {
+    // Globe océans
+    const globe = new THREE.Mesh(new THREE.SphereGeometry(0.4, 32, 32), new THREE.MeshStandardMaterial({color: 0x4169e1, roughness: 0.3}));
+    g.add(globe);
+    const water = new THREE.Mesh(new THREE.SphereGeometry(0.42, 32, 32, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshStandardMaterial({color: 0x1e90ff, transparent: true, opacity: 0.6, metalness: 0.8}));
+    water.position.y = -0.08;
+    g.add(water);
+    art3DAnims.push({mesh: water, type: 'wave', speed: 0.02});
+    art3DAnims.push({mesh: globe, type: 'rotateY', speed: 0.005});
+  } else if (type === 'glacier') {
+    // Glaciers
+    for (let i = 0; i < 6; i++) {
+      const crystal = new THREE.Mesh(new THREE.ConeGeometry(0.12 + Math.random()*0.08, 0.4 + Math.random()*0.3, 6), new THREE.MeshStandardMaterial({color: 0xe0f7fa, transparent: true, opacity: 0.9, metalness: 0.4}));
+      crystal.position.set((i-3)*0.15, 0, (Math.random()-0.5)*0.2);
+      g.add(crystal);
+      art3DAnims.push({mesh: crystal, type: 'floatY', speed: 0.008, offset: i});
+    }
+  } else if (type === 'tempete') {
+    // Tempêtes
+    for (let i = 0; i < 3; i++) {
+      const cloud = new THREE.Mesh(new THREE.SphereGeometry(0.25 + i*0.08, 16, 16), new THREE.MeshStandardMaterial({color: 0x696969, transparent: true, opacity: 0.7}));
+      cloud.position.set((i-1)*0.3, i*0.05, 0);
+      g.add(cloud);
+    }
+    const lightning = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.01, 0.6, 4), new THREE.MeshBasicMaterial({color: 0xffff00, transparent: true, opacity: 0}));
+    lightning.position.set(0, 0.2, 0.2);
+    g.add(lightning);
+    art3DAnims.push({mesh: lightning, type: 'lightning', phase: 0});
+  art3DAnims.push({mesh: g, type: 'rotateY', speed: 0.008});
+  } else if (type === 'solaire') {
+    const sunCore = new THREE.Mesh(new THREE.SphereGeometry(0.35, 32, 32), new THREE.MeshStandardMaterial({color: 0xffd700, emissive: 0xff8c00, emissiveIntensity: 0.8}));
+    g.add(sunCore);
+    for (let i = 0; i < 8; i++) {
+      const ray = new THREE.Mesh(new THREE.ConeGeometry(0.03, 0.5, 4), new THREE.MeshBasicMaterial({color: 0xffa500, transparent: true, opacity: 0.6}));
+      const ang = (i/8) * Math.PI * 2;
+      ray.position.set(Math.cos(ang)*0.5, Math.sin(ang)*0.5, 0);
+      ray.rotation.z = ang + Math.PI/2;
+      g.add(ray);
+      art3DAnims.push({mesh: ray, type: 'rotateY', speed: 0.015});
+    }
+    art3DAnims.push({mesh: sunCore, type: 'pulse', speed: 1.2});
+  } else if (type === 'eolienne') {
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 1, 8), new THREE.MeshStandardMaterial({color: 0xcccccc, metalness: 0.7}));
+    tower.position.y = -0.3;
+    g.add(tower);
+    const nacelle = new THREE.Mesh(new THREE.BoxGeometry(0.25, 0.18, 0.18), new THREE.MeshStandardMaterial({color: 0xeeeeee}));
+    nacelle.position.y = 0.35;
+    g.add(nacelle);
+    const blades = new THREE.Group();
+    for (let i = 0; i < 3; i++) {
+      const blade = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.6, 0.02), new THREE.MeshStandardMaterial({color: 0xffffff}));
+      blade.position.y = 0.3;
+      blade.rotation.z = (i * Math.PI * 2) / 3;
+      blades.add(blade);
+    }
+    blades.position.y = 0.35;
+    g.add(blades);
+    art3DAnims.push({mesh: blades, type: 'rotateY', speed: 0.04});
+  } else if (type === 'hydro') {
+    // Hydro turbine
+    const tower = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.15, 1.2, 8), new THREE.MeshStandardMaterial({color: 0x4682b4}));
+    g.add(tower);
+    const turbine = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.1, 12), new THREE.MeshStandardMaterial({color: 0x4169e1}));
+    turbine.position.y = 0.6;
+    g.add(turbine);
+    art3DAnims.push({mesh: turbine, type: 'rotateY', speed: 0.03});
+  } else if (type === 'forest') {
+    // Tree
+    const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.12, 0.8, 8), new THREE.MeshStandardMaterial({color: 0x8B4513}));
+    g.add(trunk);
+    const foliage = new THREE.Mesh(new THREE.SphereGeometry(0.4, 12, 12), new THREE.MeshStandardMaterial({color: 0x228B22}));
+    foliage.position.y = 0.9;
+    g.add(foliage);
+    art3DAnims.push({mesh: foliage, type: 'floatY', speed: 0.006});
+  } else if (type === 'city') {
+    // Building cluster
+    for (let i = 0; i < 4; i++) {
+      const bld = new THREE.Mesh(new THREE.BoxGeometry(0.3 + Math.random()*0.2, 1 + Math.random()*0.8, 0.3 + Math.random()*0.2), new THREE.MeshStandardMaterial({color: 0xD2B48C}));
+      bld.position.set((i-1.5)*0.4, bld.geometry.parameters.height/2, 0);
+      g.add(bld);
+    }
+  } else {
+    // Default
+    const geo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
+    const mat = new THREE.MeshStandardMaterial({ color: 0x888888 });
+    const model = new THREE.Mesh(geo, mat);
+    g.add(model);
+    art3DAnims.push({mesh: model, type: 'rotateY', speed: 0.01});
+  }
+
+  g.scale.set(1.6, 1.6, 1.6);
+  return g;
+}
+
+function addArt3D(data, x, z, ry = 0) {
+  const group = new THREE.Group();
+
+  // Bronze frame
+  const frameW = 2.2, frameH = 1.8, frameD = 0.15;
+  const frameMat = new THREE.MeshStandardMaterial({color: 0x8b7355, metalness: 0.6, roughness: 0.4});
+  const outerFrame = new THREE.Mesh(new THREE.BoxGeometry(frameW+0.1, frameH+0.1, frameD), frameMat);
+  outerFrame.position.z = -frameD/2;
+  group.add(outerFrame);
+
+  // Glass vitrine
+const glassMat = new THREE.MeshStandardMaterial({transparent: true, opacity: 0.15, color: 0xe8f8ff, roughness: 0, metalness: 0.1, side: THREE.DoubleSide});
+  const glass = new THREE.Mesh(new THREE.BoxGeometry(frameW-0.08, frameH-0.08, frameD+0.25), glassMat);
+  group.add(glass);
+
+  // Model
+  const model = createModelV2(data.motif, data.palette);
+  model.position.z = 0.08;
+  group.add(model);
+  data._modelGroup = group;
+  data._model = model;
+
+  // Spotlight
+  const spot = new THREE.SpotLight(0xfff8dc, 1.5, 5);
+  spot.position.set(0, frameH/2, 0.3);
+  group.add(spot);
+
+  // Plaque
+  const plaqueTex = mkTex(400, 50, (ctx,w,h) => {
+    ctx.fillStyle = '#2a2010';
+    ctx.fillRect(0,0,w,h);
+    ctx.strokeStyle = '#b87333';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(2,2,w-4,h-4);
+    ctx.fillStyle = '#e8dcc0';
+    ctx.font = 'bold 20px Inter';
+    ctx.textAlign = 'center';
+    ctx.fillText(data.title.substring(0,30), w/2, h/2 + 5);
+  });
+  const plaque = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 0.45), new THREE.MeshBasicMaterial({map: plaqueTex}));
+  plaque.position.set(0, -frameH/2 - 0.2, 0.08);
+  group.add(plaque);
+
+  group.position.set(x, 2.8, z); // Higher
+  group.rotation.y = ry;
+  scene.add(group);
+
+  // Base animation
+    art3DAnims.push({mesh: group, type: 'floatY', speed: 0.005, baseY: 2.8});
+
+  // E-interaction (raycast later)
+  return group;
+}
+
+function showArtwork3DEnhanced(data) {
+  if (activeArt3D) scene.remove(activeArt3D);
+  const clone = data._model.clone();
+  clone.scale.multiplyScalar(1.8);
+  const dir = new THREE.Vector3(0,0,-2.5).applyQuaternion(camera.quaternion);
+  clone.position.copy(camera.position).add(dir);
+  clone.lookAt(camera.position);
+  scene.add(clone);
+  activeArt3D = clone;
+  // Boost anim speeds for enhanced
+  art3DAnims.forEach(a => { if (a.speed) a.speed *= 1.5; });
+}
+
+function animateArt3D(time) {
+  art3DAnims.forEach(anim => {
+    const obj = anim.mesh || anim.group;
+    if (!obj) return;
+    const s = anim.speed || 0.01;
+    switch (anim.type) {
+      case 'rotateY': obj.rotation.y += s * time * 0.01; break;
+      case 'pulse': obj.scale.setScalar(1 + Math.sin(time * s) * 0.05); break;
+      case 'floatY': obj.position.y = anim.baseY + Math.sin(time * s + (anim.offset||0)) * 0.06; break;
+      case 'wave': obj.rotation.z += s * 0.01; obj.scale.y = 1 + Math.sin(time * s * 3) * 0.08; break;
+      case 'lightning': obj.material.opacity = Math.sin(time * 10 + anim.phase) > 0.7 ? 1 : 0; break;
+      // Add more as models added
+    }
+  });
+}
+
+window.showArtworkPanel = function(data) {
+  // Remove existing
+  const existing = document.getElementById('art-popup');
+  if (existing) existing.remove();
+
+  const popup = document.createElement('div');
+  popup.id = 'art-popup';
+  popup.style.cssText = `
+    position: fixed; inset: 0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+    display: flex; align-items: center; justify-content: center; z-index: 300;
+  `;
+  const content = document.createElement('div');
+  content.style.cssText = `
+    background: linear-gradient(135deg, #0a1a10, #1a3a20); border: 1px solid rgba(34,197,94,0.4);
+    border-radius: 24px; padding: 32px; max-width: 480px; max-height: 70vh; overflow-y: auto;
+    color: #e8f5e9; font-family: 'Inter', sans-serif; box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  `;
+  content.innerHTML = `
+    <h2 style="font-family: 'Playfair Display'; font-size: 1.8rem; color: #86efac; margin-bottom: 16px;">${data.title}</h2>
+    <p style="font-size: 1rem; line-height: 1.6; margin-bottom: 20px;">${data.desc}</p>
+    <ul style="font-size: 0.95rem;">
+      ${data.facts.map(fact => `<li style="margin: 8px 0; padding-left: 20px; position: relative;">• ${fact}</li>`).join('')}
+    </ul>
+    <button onclick="this.parentElement.parentElement.parentElement.remove()" style="
+      margin-top: 24px; padding: 12px 32px; background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none; border-radius: 50px; color: white; font-weight: 600; cursor: pointer; font-size: 1rem;
+    ">Fermer</button>
+  `;
+  popup.appendChild(content);
+  document.body.appendChild(popup);
+}
+
+let activeArt3D = null;
+const raycaster = new THREE.Raycaster();
+let ePressed = false;
+
+// ============ LIGHTING ============
+scene.add(new THREE.AmbientLight(0xffffff,.55));
+const sun=new THREE.DirectionalLight(0xfff8e0,.45);sun.position.set(15,25,10);scene.add(sun);
+scene.add(new THREE.HemisphereLight(0x87CEEB,0x6b5a3e,.25));
+
+// ============ LAYOUT ============
+/*
+ *  LAYOUT (top view, Z goes down on screen, Z- is "north"):
+ *
+ *  Rooms 1,2,3:  z = -18 to -8  (doors at z=-8)
+ *  North corridor: z = -8 to -4   (south wall has doors to rooms, north wall has door to hall)
+ *  Hall:          z = -4 to  4
+ *  South corridor: z =  4 to  8   (north wall connects to hall, south wall has doors to rooms)
+ *  Rooms 4,5:    z =  8 to 18   (doors at z=8)
+ */
+const RH=4.5, CH=3.8, RW=12, RD=10, CW=4;
+
+// ======== GROUND ========
+const ground=new THREE.Mesh(new THREE.PlaneGeometry(200,200),new THREE.MeshStandardMaterial({color:0x4a7c59,roughness:1}));
+ground.rotation.x=-Math.PI/2;ground.position.set(0,-.01,0);ground.receiveShadow=true;scene.add(ground);
+
+// ======== HALL (center 0,0, from z=-4 to z=4, x=-5 to x=5) ========
+mkFloor(0,0,10,8,M.floor);
+mkCeil(0,0,10,8,RH);
+addLights(0,0,10,8,RH,3,2);
+mkWall(-5,0,8,RH,Math.PI/2,M.wall);  // West
+mkWall(5,0,8,RH,-Math.PI/2,M.wall);   // East
+mkDoorWall(0,-4,10,RH,0,5,M.wall);    // North wall, door at center
+mkDoorWall(0,4,10,RH,Math.PI,5,M.wall); // South wall, door at center
+addWin(0,-4,10,RH,0,3);
+
+// Hall content
+addArt(mkInfo('🌿 EcoSphère',['Le Musée Vivant du Développement Durable','','« Explorer le présent, imaginer le futur,','   agir pour la planète »','','5 salles thématiques à découvrir','7 ODD de l\'ONU représentés'],{bg:'#0d2818',tc:'#4ade80',ac:'#22c55e'}),
+    -4.85,2.2,0,Math.PI/2,3,2.3);
+addArt(mkInfo('🌍 Objectifs de Développement Durable',['ODD 4  — Éducation de qualité','ODD 7  — Énergie propre','ODD 11 — Villes durables','ODD 12 — Consommation responsable','ODD 13 — Action climatique','ODD 14 — Vie aquatique','ODD 15 — Vie terrestre'],{bg:'#1a1a3a',tc:'#60a5fa',ac:'#3b82f6'}),
+    4.85,2.2,0,-Math.PI/2,3,2.3);
+
+// ======== NORTH CORRIDOR (z=-8 to z=-4) ========
+const ncZ=-6; // center
+mkFloor(0,ncZ,42,CW,M.carpet);
+mkCeil(0,ncZ,42,CW,CH);
+addLights(0,ncZ,40,CW,CH,8,1);
+
+// North side (z=-4): solid walls OUTSIDE hall (hall wall at x=-5..5 already covers center with door)
+mkWall(-12.5,-4,5,CH,0,M.wallG);  // x=-15 to -10
+mkWall(-7.5,-4,5,CH,0,M.wallG);   // x=-10 to -5
+mkWall(7.5,-4,5,CH,0,M.wallG);    // x=5 to 10
+mkWall(12.5,-4,5,CH,0,M.wallG);   // x=10 to 15
+// Outer parts
+mkWall(-18,-4,6,CH,0,M.wallG);    // x=-21 to -15
+mkWall(18,-4,6,CH,0,M.wallG);     // x=15 to 21
+
+// South side (z=-8): 3 door walls for rooms 1,2,3
+mkDoorWall(-14,-8,12,CH,0,6,M.wallG);   // Room 1, door at x=-14
+mkDoorWall(0,-8,8,CH,0,4,M.wallG);      // Room 2, door at x=0
+mkDoorWall(14,-8,12,CH,0,6,M.wallG);    // Room 3, door at x=14
+// Fill gaps between door segments
+mkWall(-7,-8,2,CH,0,M.wallG);    // between R1 and R2 segments
+mkWall(7,-8,2,CH,0,M.wallG);     // between R2 and R3 segments
+
+// Corridor end walls
+mkWall(-21,ncZ,CW,CH,Math.PI/2,M.wallG);
+mkWall(21,ncZ,CW,CH,-Math.PI/2,M.wallG);
+
+// Room labels above doors (south wall, facing into corridor)
+addLabel('Salle 1',-14,3.1,-8+.12,0);
+addLabel('Salle 2',0,3.1,-8+.12,0);
+addLabel('Salle 3',14,3.1,-8+.12,0);
+
+// Arrows
+addArrow(-7,1.7,ncZ,Math.PI,'Suite de la visite →');
+addArrow(7,1.7,ncZ,Math.PI,'Suite de la visite →');
+
+addWin(-14,-4,12,CH,0,3);
+addWin(14,-4,12,CH,0,3);
+
+// ======== SOUTH CORRIDOR (z=4 to z=8) ========
+const scZ=6;
+mkFloor(0,scZ,26,CW,M.carpet);
+mkCeil(0,scZ,26,CW,CH);
+addLights(0,scZ,24,CW,CH,5,1);
+
+// North side (z=4): solid walls outside hall (hall south wall x=-5..5 has door)
+mkWall(-8.5,4,3,CH,Math.PI,M.wallG);   // x=-10 to -7
+mkWall(8.5,4,3,CH,Math.PI,M.wallG);    // x=7 to 10
+mkWall(-11.5,4,3,CH,Math.PI,M.wallG);  // x=-13 to -10
+mkWall(11.5,4,3,CH,Math.PI,M.wallG);   // x=10 to 13
+
+// South side (z=8): 2 door walls for rooms 4,5
+mkDoorWall(-7,8,12,CH,0,6,M.wallG);   // Room 4, door at x=-7
+mkDoorWall(7,8,12,CH,0,6,M.wallG);    // Room 5, door at x=7
+mkWall(0,8,2,CH,0,M.wallG);           // fill between
+
+// Corridor end walls
+mkWall(-13,scZ,CW,CH,Math.PI/2,M.wallG);
+mkWall(13,scZ,CW,CH,-Math.PI/2,M.wallG);
+
+addLabel('Salle 4',-7,3.1,8-.12,Math.PI);
+addLabel('Salle 5',7,3.1,8-.12,Math.PI);
+addArrow(0,1.7,scZ,Math.PI,'Salles 4 & 5 →');
+
+// ======== ROOM 1: CLIMAT (center -14, -13) ========
+const r1={x:-14,z:-13};
+mkFloor(r1.x,r1.z,RW,RD,M.floor);
+mkCeil(r1.x,r1.z,RW,RD,RH);
+addLights(r1.x,r1.z,RW,RD,RH,3,2);
+mkWall(r1.x,r1.z-RD/2,RW,RH,0,MR.climat.accent);           
+mkWall(r1.x-RW/2,r1.z,RD,RH,Math.PI/2,MR.climat.wall);    
+mkWall(r1.x+RW/2,r1.z,RD,RH,-Math.PI/2,MR.climat.wall);   
+// Entry side (z=-8) handled by corridor south door wall
+addWin(r1.x,r1.z-RD/2,RW,RH,0,3);
+
+// 3D Exhibits - Left wall
+addArt3D({
+  title: 'Effet de Serre', desc: 'Gaz piègent chaleur. +1.1°C depuis 1850. CO2: 280→421ppm.', facts: ['+1.1°C global', '421ppm CO2', 'Paris +1.5°C'], palette: ['#ff6b6b','#ffa500','#ffd700'], motif: 'serre'
+}, r1.x - RW/2 + 0.2, r1.z - 6, -Math.PI/2);
+
+addArt3D({
+  title: 'Montée Océans', desc: '3.4mm/an. 680M côtiers menacés. +20cm/100ans.', facts: ['+3.4mm/an', '680M menacés', '+20cm siècle'], palette: ['#1e90ff','#00ced1'], motif: 'ocean'
+}, r1.x - RW/2 + 0.2, r1.z + 6, -Math.PI/2);
+
+// Right wall
+addArt3D({
+  title: 'Fonte Glaciers', desc: 'Arctique -13%/décennie. Groenland -280Gt/an.', facts: ['-13% Arctique', '280Gt/an GL', '-60% Alpes'], palette: ['#e0f7fa','#add8e6'], motif: 'glacier'
+}, r1.x + RW/2 - 0.2, r1.z - 6, Math.PI/2);
+
+addArt3D({
+  title: 'Tempêtes', desc: 'Cyclones +25% intenses. Canicule 2003: 70k morts.', facts: ['+25% cyclones', '70k morts 2003', 'x5 extrêmes'], palette: ['#696969','#ffff00'], motif: 'tempete'
+}, r1.x + RW/2 - 0.2, r1.z + 6, Math.PI/2);
+
+addPanel(mkInfo('💡 Solutions Climatiques',['Transition énergétique renouvelable','Reforestation massive','Agriculture régénérative','Mobilité douce','Économie circulaire et sobriété','Engagement citoyen'],{bg:'#1a3320',ac:'#4ade80'}),r1.x,r1.z);
+
+// ======== ROOM 2: ÉNERGIES (center 0, -13) ========
+const r2={x:0,z:-13};
+mkFloor(r2.x,r2.z,RW,RD,M.floor);
+mkCeil(r2.x,r2.z,RW,RD,RH);
+addLights(r2.x,r2.z,RW,RD,RH,3,2);
+mkWall(r2.x,r2.z-RD/2,RW,RH,0,MR.energie.accent);
+mkWall(r2.x-RW/2,r2.z,RD,RH,Math.PI/2,MR.energie.wall);
+mkWall(r2.x+RW/2,r2.z,RD,RH,-Math.PI/2,MR.energie.wall);
+addWin(r2.x,r2.z-RD/2,RW,RH,0,3);
+
+// Left wall
+addArt3D({
+  title: 'Énergie Solaire', desc: '1000GW installés. Coût ÷10/10ans.', facts: ['1000GW', '÷10 coût', '25% rendement'], palette: ['#ffd700','#ff8c00'], motif: 'solaire'
+}, r2.x - RW/2 + 0.2, r2.z - 6, -Math.PI/2);
+
+addArt3D({
+  title: 'Éolienne', desc: '900GW. Offshore x30%/an.', facts: ['900GW', '15MW/turbine', '+17%/an'], palette: ['#90ee90','#98fb98'], motif: 'eolienne'
+}, r2.x - RW/2 + 0.2, r2.z + 6, -Math.PI/2);
+
+// Right wall
+addArt3D({
+  title: 'Hydroélectricité', desc: '16% énergie mondiale. 1300GW.', facts: ['16% mondial', '1300GW', '24gCO2/kWh'], palette: ['#4169e1','#00ced1'], motif: 'hydro'
+}, r2.x + RW/2 - 0.2, r2.z - 6, Math.PI/2);
+
+addArt3D({
+  title: 'Géothermie', desc: 'Islande 90% chauffage. 200GW potentiel.', facts: ['90% Islande', '200GW', '24h/24'], palette: ['#ff4500','#ff6347'], motif: 'geothermie'
+}, r2.x + RW/2 - 0.2, r2.z + 6, Math.PI/2);
+
+addPanel(mkInfo('🔋 Comparaison Énergies',['Charbon : 820g CO₂/kWh ❌','Gaz : 490g CO₂/kWh ⚠️','Solaire : 45g CO₂/kWh ✅','Éolien : 11g CO₂/kWh ✅','Hydraulique : 24g CO₂/kWh ✅','Nucléaire : 12g CO₂/kWh ⚡'],{bg:'#2a2a10',tc:'#fbbf24',ac:'#f59e0b'}),r2.x,r2.z);
+
+// ======== ROOM 3: VILLES (center 14, -13) ========
+const r3={x:14,z:-13};
+mkFloor(r3.x,r3.z,RW,RD,M.floor);
+mkCeil(r3.x,r3.z,RW,RD,RH);
+addLights(r3.x,r3.z,RW,RD,RH,3,2);
+mkWall(r3.x,r3.z-RD/2,RW,RH,0,MR.villes.accent);
+mkWall(r3.x-RW/2,r3.z,RD,RH,Math.PI/2,MR.villes.wall);
+mkWall(r3.x+RW/2,r3.z,RD,RH,-Math.PI/2,MR.villes.wall);
+addWin(r3.x,r3.z-RD/2,RW,RH,0,3);
+
+// Left wall
+addArt3D({
+  title: 'Villes Vertes', desc: 'Toits verts -40% énergie. 15m² vert/hab.', facts: ['-40% énergie', '15m²/hab OMS', 'SG 100% comp'], palette: ['#228b22','#90ee90'], motif: 'city'
+}, r3.x - RW/2 + 0.2, r3.z - 6, -Math.PI/2);
+
+addArt3D({
+  title: 'Transports', desc: '25% émissions. Vélo 50% Amsterdam.', facts: ['25% CO2', '50% vélo NL', '100% VE Oslo25'], palette: ['#4169e1','#87ceeb'], motif: 'tram'
+}, r3.x - RW/2 + 0.2, r3.z + 6, -Math.PI/2);
+
+// Right wall
+addArt3D({
+  title: 'Architecture', desc: 'Bâtiments -50% énergie. Bois +20%/an.', facts: ['-50% énergie', '+20% bois', '-35% CO2'], palette: ['#d2b48c','#deb887'], motif: 'building'
+}, r3.x + RW/2 - 0.2, r3.z - 6, Math.PI/2);
+
+addArt3D({
+  title: 'Circulaire', desc: 'Amsterdam 50% matériaux 2030.', facts: ['50% 2030', '-30% déchets', '-60% CO2'], palette: ['#32cd32','#228b22'], motif: 'cycle'
+}, r3.x + RW/2 - 0.2, r3.z + 6, Math.PI/2);
+
+addPanel(mkInfo('🚲 Transport Durable',['Vélo : 0g CO₂/km 🚲','Tramway : 3g CO₂/km 🚊','Voiture élec. : 50g CO₂/km','Voiture therm. : 120g CO₂/km','Avion : 285g CO₂/km ✈️','Objectif : -40% 2030'],{bg:'#1a2a1a',tc:'#86efac',ac:'#22c55e'}),r3.x,r3.z);
+
+// ======== ROOM 4: BIODIVERSITÉ (center -7, 13) ========
+const r4={x:-7,z:13};
+mkFloor(r4.x,r4.z,RW,RD,M.floor);
+mkCeil(r4.x,r4.z,RW,RD,RH);
+addLights(r4.x,r4.z,RW,RD,RH,3,2);
+mkWall(r4.x,r4.z+RD/2,RW,RH,Math.PI,MR.biodiversite.accent);      
+mkWall(r4.x-RW/2,r4.z,RD,RH,Math.PI/2,MR.biodiversite.wall);     
+mkWall(r4.x+RW/2,r4.z,RD,RH,-Math.PI/2,MR.biodiversite.wall);    
+addWin(r4.x,r4.z+RD/2,RW,RH,Math.PI,3);
+
+// Left wall
+addArt3D({
+  title: 'Forêt Tropicale', desc: '80% biodiversité. 10Mha/an perdus.', facts: ['80% bio terrestre', '10Mha/an', '11% GES'], palette: ['#228b22','#006400'], motif: 'forest'
+}, r4.x - RW/2 + 0.2, r4.z - 6, -Math.PI/2);
+
+addArt3D({
+  title: 'Récifs Corail', desc: '50% Barrière perdue. 90% stocks poisson menacés.', facts: ['50% coraux', '90% poissons', '30% CO2 absorbé'], palette: ['#ff6b6b','#00ced1'], motif: 'coral'
+}, r4.x - RW/2 + 0.2, r4.z + 6, -Math.PI/2);
+
+// Right wall
+addArt3D({
+  title: 'Espèces Menacées', desc: '1M menacées. 1000x rythme naturel.', facts: ['1M espèces', '1000x naturel', 'Habitat #1'], palette: ['#ff0000','#dc143c'], motif: 'species'
+}, r4.x + RW/2 - 0.2, r4.z - 6, Math.PI/2);
+
+addArt3D({
+  title: 'Pollinisation', desc: '75% cultures dépend. -30% abeilles.', facts: ['75% cultures', '-30% abeilles', '235Mrd$/an'], palette: ['#ffd700','#ff69b4'], motif: 'bee'
+}, r4.x + RW/2 - 0.2, r4.z + 6, Math.PI/2);
+
+addPanel(mkInfo('🌍 Protéger la Biodiversité',['Aires protégées : 30% 2030','Reforestation : 1 Md ha','Interdiction pesticides','Corridors écologiques','Sciences participatives','Consommation responsable'],{bg:'#0a2a1a',tc:'#34d399',ac:'#10b981'}),r4.x,r4.z);
+
+// ======== ROOM 5: RECYCLAGE (center 7, 13) ========
+const r5={x:7,z:13};
+mkFloor(r5.x,r5.z,RW,RD,M.floor);
+mkCeil(r5.x,r5.z,RW,RD,RH);
+addLights(r5.x,r5.z,RW,RD,RH,3,2);
+mkWall(r5.x,r5.z+RD/2,RW,RH,Math.PI,MR.recyclage.accent);
+mkWall(r5.x-RW/2,r5.z,RD,RH,Math.PI/2,MR.recyclage.wall);
+mkWall(r5.x+RW/2,r5.z,RD,RH,-Math.PI/2,MR.recyclage.wall);
+addWin(r5.x,r5.z+RD/2,RW,RH,Math.PI,3);
+
+// Left wall
+addArt3D({
+  title: 'Tri Sélectif', desc: '42% France. +30% consigne.', facts: ['42% FR', '67% DE', '+30% consigne'], palette: ['#006400','#228b22'], motif: 'trash'
+}, r5.x - RW/2 + 0.2, r5.z - 6, -Math.PI/2);
+
+addArt3D({
+  title: 'Upcycling', desc: '-20-50% déchets. Mode +15%/an.', facts: ['-20-50% déchets', '+15% mode', '1M emplois'], palette: ['#ff69b4','#da70d6'], motif: 'upcycle'
+}, r5.x - RW/2 + 0.2, r5.z + 6, -Math.PI/2);
+
+// Right wall
+addArt3D({
+  title: 'Plastique Océan', desc: '380Mt/an. 8Mt océan.', facts: ['380Mt/an', '8Mt océan', '>poissons 2050'], palette: ['#87ceeb','#1e90ff'], motif: 'bottle'
+}, r5.x + RW/2 - 0.2, r5.z - 6, Math.PI/2);
+
+addArt3D({
+  title: 'Compostage', desc: '30% déchets compost. -50% méthane.', facts: ['30% compost', '-50% méthane', 'Engrais gratuit'], palette: ['#8b4513','#228b22'], motif: 'compost'
+}, r5.x + RW/2 - 0.2, r5.z + 6, Math.PI/2);
+
+addPanel(mkInfo('🎯 Mon Engagement',['1. Refuser le jetable','2. Réduire la conso','3. Réutiliser et réparer','4. Recycler correctement','5. Composter','6. Acheter local'],{bg:'#2a1a0a',tc:'#fb923c',ac:'#f97316'}),r5.x,r5.z);
+
+// ============ ROOM DETECTION ============
+const zones=[
+    {n:'🚪 Hall d\'Accueil',x:0,z:0,w:10,d:8,odd:'',desc:'Bienvenue ! Explorez les 5 salles du développement durable.'},
+    {n:'🌿 Salle 1 — Climat',x:r1.x,z:r1.z,w:RW,d:RD,odd:'ODD 13 — Action Climatique',desc:'Réchauffement climatique, fonte des glaciers et solutions.'},
+    {n:'⚡ Salle 2 — Énergies',x:r2.x,z:r2.z,w:RW,d:RD,odd:'ODD 7 — Énergie Propre',desc:'Solaire, éolien, hydraulique : l\'avenir énergétique.'},
+    {n:'🏙️ Salle 3 — Villes',x:r3.x,z:r3.z,w:RW,d:RD,odd:'ODD 11 — Villes Durables',desc:'Smart cities, transport vert et urbanisme durable.'},
+    {n:'🌳 Salle 4 — Biodiversité',x:r4.x,z:r4.z,w:RW,d:RD,odd:'ODD 14 & 15',desc:'Espèces menacées, océans en danger, protection du vivant.'},
+    {n:'♻️ Salle 5 — Recyclage',x:r5.x,z:r5.z,w:RW,d:RD,odd:'ODD 12',desc:'Économie circulaire, tri, zéro déchet.'},
+    {n:'📍 Couloir Nord',x:0,z:ncZ,w:42,d:CW,odd:'',desc:'Suivez les flèches → salles 1, 2, 3.'},
+    {n:'📍 Couloir Sud',x:0,z:scZ,w:26,d:CW,odd:'',desc:'Direction salles 4 et 5.'},
+];
+const visited=new Set();
+
+function detectRoom(){
+    const px=camera.position.x,pz=camera.position.z;
+    for(const z of zones){
+        if(px>=z.x-z.w/2&&px<=z.x+z.w/2&&pz>=z.z-z.d/2&&pz<=z.z+z.d/2){
+            document.getElementById('h-name').textContent=z.n;
+            document.getElementById('h-odd').textContent=z.odd;
+            document.getElementById('hi-t').textContent=z.n;
+            document.getElementById('hi-d').textContent=z.desc;
+            visited.add(z.n);
+            document.getElementById('pf').style.width=Math.min(100,Math.round(visited.size/zones.length*100))+'%';
+            return;
+        }
+    }
+    document.getElementById('h-name').textContent='Musée EcoSphère';
+}
+
+// ============ MINIMAP ============
+const mmc=document.getElementById('mmc'),mmx=mmc.getContext('2d');
+function drawMinimap(){
+    const W=mmc.width,H=mmc.height;mmx.clearRect(0,0,W,H);
+    mmx.fillStyle='rgba(10,25,15,.85)';mmx.fillRect(0,0,W,H);
+    const s=2.5,ox=W/2,oy=H/2+10;
+    const mx=p=>ox+p*s,mz=p=>oy+p*s;
+    const rms=[{x:0,z:0,w:10,d:8,c:'#22c55e',l:'Hall'},{x:r1.x,z:r1.z,w:RW,d:RD,c:'#3b82f6',l:'S1'},{x:r2.x,z:r2.z,w:RW,d:RD,c:'#f59e0b',l:'S2'},{x:r3.x,z:r3.z,w:RW,d:RD,c:'#8b5cf6',l:'S3'},{x:r4.x,z:r4.z,w:RW,d:RD,c:'#10b981',l:'S4'},{x:r5.x,z:r5.z,w:RW,d:RD,c:'#f97316',l:'S5'}];
+    mmx.fillStyle='rgba(74,222,128,.1)';
+    mmx.fillRect(mx(-21),mz(-8),42*s,CW*s);
+    mmx.fillRect(mx(-13),mz(4),26*s,CW*s);
+    rms.forEach(r=>{const v=visited.has(zones.find(z=>z.x===r.x&&z.z===r.z)?.n);mmx.fillStyle=r.c+(v?'40':'18');mmx.strokeStyle=r.c+(v?'cc':'44');mmx.lineWidth=v?1.5:.7;mmx.fillRect(mx(r.x-r.w/2),mz(r.z-r.d/2),r.w*s,r.d*s);mmx.strokeRect(mx(r.x-r.w/2),mz(r.z-r.d/2),r.w*s,r.d*s);mmx.fillStyle=r.c;mmx.font=`bold ${v?'9':'7'}px Inter,sans-serif`;mmx.textAlign='center';mmx.fillText(r.l,mx(r.x),mz(r.z)+3)});
+    const px=mx(camera.position.x),pz=mz(camera.position.z);
+    mmx.fillStyle='#ef4444';mmx.shadowBlur=6;mmx.shadowColor='#ef4444';mmx.beginPath();mmx.arc(px,pz,3.5,0,Math.PI*2);mmx.fill();mmx.shadowBlur=0;
+    const d=new THREE.Vector3();camera.getWorldDirection(d);mmx.strokeStyle='#ef4444';mmx.lineWidth=2;mmx.beginPath();mmx.moveTo(px,pz);mmx.lineTo(px+d.x*8,pz+d.z*8);mmx.stroke();
+}
+
+// ============ INPUT ============
+document.addEventListener('keydown',e=>{switch(e.code){
+  case'KeyW':case'ArrowUp':case'KeyZ':mv.f=true;break;
+  case'KeyS':case'ArrowDown':mv.b=true;break;
+  case'KeyA':case'ArrowLeft':case'KeyQ':mv.l=true;break;
+  case'KeyD':case'ArrowRight':mv.r=true;break;
+  case 'KeyE':
+    if (locked && !ePressed) {
+      ePressed = true;
+      raycaster.setFromCamera(new THREE.Vector2(0,0), camera);
+      const intersects = raycaster.intersectObjects(scene.children, true);
+      for (let intersect of intersects) {
+        const userData = intersect.object.userData || intersect.object.parent?.userData;
+        if (userData && userData._modelGroup) {
+          const data = { ...userData, _model: userData._modelGroup.getObjectByName('model') || userData._model };
+          showArtwork3DEnhanced(data);
+          showArtworkPanel({title: userData.title, desc: userData.desc || 'Prototype interactif du musée EcoSphère.', facts: userData.facts || []}); 
+          break;
+        }
+      }
+    }
+    break;
+}});
+document.addEventListener('keyup', e => { if (e.code === 'KeyE') ePressed = false; });
+
+document.addEventListener('keyup',e=>{switch(e.code){case'KeyW':case'ArrowUp':case'KeyZ':mv.f=false;break;case'KeyS':case'ArrowDown':mv.b=false;break;case'KeyA':case'ArrowLeft':case'KeyQ':mv.l=false;break;case'KeyD':case'ArrowRight':mv.r=false;break}});
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+
+
+
+// ============ LOOP ============
+const clock=new THREE.Clock();
+let fc=0;
+
+function animate(){
+    requestAnimationFrame(animate);
+    const dt=Math.min(clock.getDelta(),.05);fc++;
+    if(locked){
+        const spd=5.5,fric=8;
+        vel.x-=vel.x*fric*dt;vel.z-=vel.z*fric*dt;
+        const dz=Number(mv.f)-Number(mv.b),dx=Number(mv.r)-Number(mv.l);
+        const len=Math.sqrt(dx*dx+dz*dz)||1;
+        if(mv.f||mv.b)vel.z-=(dz/len)*spd*dt*15;
+        if(mv.l||mv.r)vel.x-=(dx/len)*spd*dt*15;
+        const ox=camera.position.x,oz=camera.position.z;
+        controls.moveRight(-vel.x*dt);controls.moveForward(-vel.z*dt);
+        camera.position.y=1.7;
+        const nx=camera.position.x,nz=camera.position.z;
+        if(hit(nx,nz)){
+            if(!hit(nx,oz)){camera.position.z=oz}
+            else if(!hit(ox,nz)){camera.position.x=ox}
+            else{camera.position.x=ox;camera.position.z=oz}
+            vel.multiplyScalar(.2);
+        }
+if(fc%8===0){drawMinimap();detectRoom()}
+        animateArt3D(clock.getElapsedTime());
+    }
+    renderer.render(scene,camera);
+}
+animate();
+</script>
+</body>
+</html>
