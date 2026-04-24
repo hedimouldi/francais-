@@ -1,0 +1,11 @@
+SALLE 3 : VILLES DURABLES
+
+ODD Lié : ODD 11 (Villes et communautés durables).
+
+Éléments éducatifs de la salle :
+1. Architecture Bioclimatique : Maquettes d'immeubles intégrant des jardins verticaux et des systèmes de récupération d'eau.
+2. Mobilité Douce : Simulation de transports autonomes électriques et d'infrastructures pour vélos.
+3. Désimperméabilisation : Transformation du paysage urbain où le bitume laisse place à la pleine terre et aux parcs.
+
+Prompt pour l'IA (Vidéo 1 min) :
+"Génère un script vidéo d'une minute sur la vision de la ville de demain (ODD 11). La vidéo doit mettre en avant l'innovation de la visite virtuelle qui permet de se projeter dans une cité durable. 'L'éducation est la clé du changement, et ÉcoTech 3D apporte cette clé directement dans votre foyer, rendant le savoir accessible à tous, sans distinction.'"
